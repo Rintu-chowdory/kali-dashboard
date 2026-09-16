@@ -3,7 +3,8 @@
 #  Base  : Kali Linux (Rolling)
 #  Stack : Node.js (LTS) + Python 3
 #  Shell : Bash (with a nice prompt)
-#  Tools : git, gh CLI, curl, wget, jq
+#  Tools : git, gh CLI, curl, wget, jq, rg, fzf,
+#          htop, tmux, nmap & more
 # ─────────────────────────────────────────────
 FROM kalilinux/kali-rolling
 
@@ -30,6 +31,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bash-completion \
     nano \
     unzip \
+    zip \
+    # CLI productivity
+    htop \
+    tmux \
+    ripgrep \
+    fzf \
+    tree \
+    bat \
+    # Security / network essentials
+    nmap \
+    netcat-openbsd \
+    dnsutils \
+    whois \
+    net-tools \
     && rm -rf /var/lib/apt/lists/*
 
 # ── 2. Node.js (LTS via NodeSource) ──────────
@@ -87,6 +102,9 @@ alias gs="git status"\n\
 alias gl="git log --oneline --graph --all"\n\
 alias py="python3"\n\
 alias ipy="ipython"\n\
+alias cat="batcat --style=plain"\n\
+alias dc="docker compose"\n\
+alias serve="python3 -m http.server 8000"\n\
 ' >> /etc/bash.bashrc
 
 # ── 8. Switch to non-root user ────────────────
@@ -102,7 +120,9 @@ RUN echo "=== Version Check ===" \
     && git --version \
     && gh --version \
     && curl --version | head -1 \
-    && jq --version
+    && jq --version \
+    && nmap --version | head -1 \
+    && tmux -V
 
 # ── Default command: interactive bash ─────────
 CMD ["bash"]
