@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { StatCard, Icon } from "./ui.jsx";
+import { fetchRuns, timeAgo, duration, CONCLUSION_COLOR, REPO } from "../lib/github.js";
 
 const STEPS = [
   { name: "Checkout", icon: (
@@ -29,18 +31,44 @@ const STEPS = [
 ];
 
 export default function PipelineTab() {
+  const [state, setState] = useState({ loading: true, runs: [], error: null });
+
+  useEffect(() => {
+    let alive = true;
+    fetchRuns()
+      .then((data) => alive && setState({ loading: false, runs: data.runs, error: null }))
+      .catch((err) => alive && setState({ loading: false, runs: [], error: err.message }));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const { loading, runs, error } = state;
+  const latest = runs[0];
+  const done = runs.filter((r) => r.status === "completed");
+  const passing = done.length ? done.filter((r) => r.conclusion === "success").length : 0;
+  const slowest = done.reduce((max, r) => Math.max(max, r.durationMs || 0), 0);
+
   return (
     <div className="fade-in">
       <div className="grid stat-grid-3" style={{ marginBottom: 16 }}>
         <StatCard icon={<Icon name="pipeline" />} label="Trigger" value="git push" sub="on: push to main" />
-        <StatCard icon={<Icon name="terminal" />} label="Runner" value="ubuntu-latest" accent="var(--cyan)" sub="4 vCPU · 16 GB" />
-        <StatCard icon={<Icon name="gauge" />} label="Build Time" value="~155s" accent="var(--amber)" sub="with layer cache" />
+        <StatCard icon={<Icon name="terminal" />} label="Runner" value="ubuntu-latest" accent="var(--cyan)" sub="GitHub-hosted" />
+        <StatCard
+          icon={<Icon name="gauge" />}
+          label="Slowest recent run"
+          value={slowest ? duration(slowest) : "—"}
+          accent="var(--amber)"
+          sub={done.length ? `across ${done.length} completed runs` : "no data yet"}
+        />
       </div>
 
       <div className="panel">
         <div className="panel-title">
           <span>GitHub Actions Pipelines</span>
-          <span style={{ letterSpacing: 1 }}>2 workflows · all green</span>
+          <span style={{ letterSpacing: 1 }}>
+            {loading ? "loading…" : error ? "live data unavailable" : `2 workflows · ${passing}/${done.length} green`}
+          </span>
         </div>
         <div className="pipeline">
           {STEPS.map((s, i) => (
@@ -54,23 +82,54 @@ export default function PipelineTab() {
           ))}
         </div>
         <div className="total-row">
-          <span style={{ color: "var(--muted)" }}>LAST RUN</span>
-          <span style={{ color: "var(--green)" }}>✔ image → Docker Hub · dashboard → GitHub Pages</span>
+          <span style={{ color: "var(--muted)" }}>LATEST</span>
+          <span style={{ color: latest ? CONCLUSION_COLOR[latest.conclusion] || "var(--muted)" : "var(--muted)" }}>
+            {latest
+              ? `${latest.workflow} — ${latest.conclusion || latest.status} · ${timeAgo(latest.createdAt)}`
+              : "waiting for GitHub…"}
+          </span>
         </div>
       </div>
 
       <div className="panel" style={{ marginTop: 16 }}>
-        <div className="panel-title">Workflow Runs</div>
-        {[
-          { w: "docker-publish.yml", status: "success", msg: "pushed riinnttuu/dev-env:latest + sha tag", color: "#00ff88" },
-          { w: "static.yml (pages)", status: "success", msg: "dashboard built with vite → deployed to Pages", color: "#00ff88" },
-        ].map((r, i) => (
-          <div className="feed-row" key={i}>
-            <div className="feed-dot" style={{ background: r.color, boxShadow: `0 0 8px ${r.color}` }} />
-            <div className="feed-text">{r.w} — {r.msg}</div>
-            <div className="feed-time">✔ {r.status}</div>
+        <div className="panel-title">
+          <span>Workflow Runs</span>
+          <span style={{ letterSpacing: 1 }}>{REPO}</span>
+        </div>
+
+        {error && (
+          <div className="feed-row">
+            <div className="feed-dot" style={{ background: "#ffcc00", boxShadow: "0 0 8px #ffcc00" }} />
+            <div className="feed-text">
+              Could not read the GitHub API: {error}. The panel shows nothing rather than inventing a status.
+            </div>
           </div>
-        ))}
+        )}
+
+        {!error && loading && <div className="feed-row"><div className="feed-text">Fetching workflow runs…</div></div>}
+
+        {!error &&
+          runs.map((r) => {
+            const color = CONCLUSION_COLOR[r.conclusion] || "#ffcc00";
+            return (
+              <a
+                className="feed-row"
+                key={r.id}
+                href={r.url}
+                target="_blank"
+                rel="noreferrer"
+                style={{ textDecoration: "none", color: "inherit" }}
+              >
+                <div className="feed-dot" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
+                <div className="feed-text">
+                  {r.file || r.workflow} <span style={{ color: "var(--muted)" }}>on {r.branch} · {r.sha}</span>
+                </div>
+                <div className="feed-time" style={{ color }}>
+                  {r.conclusion || r.status} · {duration(r.durationMs)} · {timeAgo(r.createdAt)}
+                </div>
+              </a>
+            );
+          })}
       </div>
     </div>
   );

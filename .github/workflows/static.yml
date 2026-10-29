@@ -36,6 +36,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
         working-directory: dashboard
+      - name: Refresh image stats
+        # Registry + Docker Hub data for the Docker tab. A registry hiccup must not
+        # block a deploy, so the committed image.json stays as the fallback.
+        run: node scripts/fetch-image-stats.mjs
+        continue-on-error: true
       - name: Build dashboard
         run: npm run build
         working-directory: dashboard

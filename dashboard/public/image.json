@@ -1,0 +1,65 @@
+{
+  "name": "riinnttuu/dev-env",
+  "tag": "latest",
+  "generatedAt": "2026-10-29T20:02:34.773Z",
+  "sizeBytes": 743180582,
+  "compressedSizeBytes": 743180582,
+  "pulls": 727,
+  "lastPushed": "2026-09-16T22:13:37.082794Z",
+  "platforms": [
+    "linux/amd64"
+  ],
+  "configDigest": "sha256:f50d5036e81355035613523439e09d7975b709b5c8eaef50a6f78816309ac2f4",
+  "layers": [
+    {
+      "digest": "2833d00c1990",
+      "sizeBytes": 52864594,
+      "step": "CMD [\"bash\"]"
+    },
+    {
+      "digest": "0fabd5b0dc4e",
+      "sizeBytes": 527544495,
+      "step": "RUN /bin/sh -c apt-get update && apt-get install -y --no-install-recommends curl wget jq…"
+    },
+    {
+      "digest": "981185640c2b",
+      "sizeBytes": 73644516,
+      "step": "RUN /bin/sh -c curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && apt-get ins…"
+    },
+    {
+      "digest": "ec87979d6761",
+      "sizeBytes": 15508717,
+      "step": "RUN /bin/sh -c curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg …"
+    },
+    {
+      "digest": "76a12417b7e8",
+      "sizeBytes": 46900893,
+      "step": "RUN /bin/sh -c npm install -g npm@latest nodemon typescript ts-node prettier # buildkit"
+    },
+    {
+      "digest": "bae5146ffb59",
+      "sizeBytes": 26707854,
+      "step": "RUN /bin/sh -c pip3 install --no-cache-dir --break-system-packages ipython black ruff ht…"
+    },
+    {
+      "digest": "dc4f21702e65",
+      "sizeBytes": 7620,
+      "step": "RUN USERNAME=kalidev USER_UID=1000 USER_GID=1000 /bin/sh -c groupadd --gid $USER_GID $US…"
+    },
+    {
+      "digest": "97dd850560e0",
+      "sizeBytes": 1499,
+      "step": "RUN USERNAME=kalidev USER_UID=1000 USER_GID=1000 /bin/sh -c echo '\\nparse_git_branch() {…"
+    },
+    {
+      "digest": "50cbc446c819",
+      "sizeBytes": 152,
+      "step": "WORKDIR /home/kalidev/workspace"
+    },
+    {
+      "digest": "0f7dec0e7a10",
+      "sizeBytes": 242,
+      "step": "RUN USERNAME=kalidev USER_UID=1000 USER_GID=1000 /bin/sh -c echo \"=== Version Check ===\"…"
+    }
+  ]
+}
