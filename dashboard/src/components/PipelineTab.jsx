@@ -47,6 +47,7 @@ export default function PipelineTab() {
   const latest = runs[0];
   const done = runs.filter((r) => r.status === "completed");
   const passing = done.length ? done.filter((r) => r.conclusion === "success").length : 0;
+  const workflowCount = new Set(runs.map((r) => r.file).filter(Boolean)).size;
   const slowest = done.reduce((max, r) => Math.max(max, r.durationMs || 0), 0);
 
   return (
@@ -67,7 +68,11 @@ export default function PipelineTab() {
         <div className="panel-title">
           <span>GitHub Actions Pipelines</span>
           <span style={{ letterSpacing: 1 }}>
-            {loading ? "loading…" : error ? "live data unavailable" : `2 workflows · ${passing}/${done.length} green`}
+            {loading
+              ? "loading…"
+              : error
+                ? "live data unavailable"
+                : `${workflowCount} workflows · ${passing}/${done.length} green`}
           </span>
         </div>
         <div className="pipeline">
